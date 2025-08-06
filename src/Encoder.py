@@ -1,5 +1,6 @@
 from Utilities import get_register_number
-
+from Constant_Handler import ConstantTable, process_constants
+from Label_Handler import Label_Table,process_labels
 # instruction map used to encode/decode
 instruction_map = {
     'addiu': {'opcode': '0x09', 'funct': None, 'type': 'I-type'},
@@ -41,8 +42,8 @@ register_map = {
     "ra": 0x1F   # register 31
 }
 
-from Utilities import get_register_number
-from Encoder import instruction_map
+
+
 # function used to decode a single line that contains an instruction
 def encode_instruction(mnemonic, operands, label_table=None, constants={}, current_address=0):
     info = instruction_map.get(mnemonic)

@@ -1,5 +1,5 @@
 # assembler/macro_handler.py
-
+#First part of our assembler
 def expand_macros(lines):
     '''
     Expands macros defined in the assembly code.
