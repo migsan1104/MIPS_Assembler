@@ -29,16 +29,35 @@ def encode_data_directives(lines):
     byte_list = []
     current_addr = 0
     byte_buffer = []  # holds pending .byte values
-
+    # we use this function for padding
     def flush_byte_buffer():
-        #using nonlocal variable access
         nonlocal current_addr
         while byte_buffer:
             group = byte_buffer[:4]
             del byte_buffer[:4]
-            padding = [0x00] * (4 - len(group))  # pad left (MSBs)
+
+            # Pad to 4 bytes from the left (MSB-first, big-endian)
+            padding = [0x00] * (4 - len(group))
             full_word = padding + group
-            byte_list.extend(full_word)
+
+            # Combine into a 32-bit word for clarity
+            word = (
+                (full_word[0] << 24) |
+                (full_word[1] << 16) |
+                (full_word[2] << 8) |
+                full_word[3]
+            )
+
+        # Break into big-endian bytes
+            word_bytes = [
+            (word >> 24) & 0xFF,
+            (word >> 16) & 0xFF,
+            (word >> 8) & 0xFF,
+            word & 0xFF
+            ]
+
+
+            byte_list.extend(word_bytes)
             current_addr += 4
 
     for line in lines:
@@ -57,12 +76,13 @@ def encode_data_directives(lines):
             byte_list.extend([0x00] * padding)
             current_addr = new_addr
 
-        # ─── .byte ───
+        # handling .byte
         elif directive == ".byte":
             for val in line.get("values", []):
                 byte_buffer.append(val & 0xFF)
+            flush_byte_buffer()
 
-        # ─── .word ───
+        # handling. word
         elif directive == ".word":
             flush_byte_buffer()
             for val in line.get("values", []):
@@ -75,7 +95,7 @@ def encode_data_directives(lines):
                 byte_list.extend(word_bytes)
                 current_addr += 4
 
-        # ─── .space ───
+        # handling.space
         elif directive == ".space":
             flush_byte_buffer()
             word_count = int(line["value"], 0)
@@ -83,9 +103,10 @@ def encode_data_directives(lines):
             byte_list.extend([0x00] * byte_count)
             current_addr += byte_count
 
-        # ─── Skip other directives (e.g., .equ) ───
+        #  skip all other directives
         else:
             continue
+
 
     flush_byte_buffer()  # flush any remaining bytes
     return byte_list

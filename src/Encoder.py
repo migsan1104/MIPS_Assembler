@@ -152,6 +152,7 @@ def encode_i_type(mnemonic, operands, info, constants={}):
 def encode_branch(mnemonic, operands, info, label_table, current_address, constants={}):
     parts = [x.strip() for x in operands.split(",")]
 
+
     if mnemonic in ["beq", "bne"]:
         rs = get_register_number(parts[0])
         rt = get_register_number(parts[1])
@@ -181,6 +182,7 @@ def encode_branch(mnemonic, operands, info, label_table, current_address, consta
     offset = (target_address - (current_address + 4)) // 4
 
 
+
     opcode = int(info["opcode"], 16)
 
     return (
@@ -207,6 +209,8 @@ def encode_jump(mnemonic, operands, info, label_table,constants):
         target = int(operand, 0)
 
     target &= 0x03FFFFFF
+
+
     return (opcode << 26) | target
 
 # this function encodes mem instructions, although labels are byte addresses, the raw offset fields need to be inputed as word addresses

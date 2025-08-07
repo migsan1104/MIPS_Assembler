@@ -64,11 +64,15 @@ def process_labels(lines, start_text_addr=0x00000000, start_data_addr=0x00000000
 
         # Handling text section
         if section == ".text":
+            # Always assign current address
             line["address"] = current_text_addr
+
             if label:
                 label_table.add_label(label, current_text_addr)
-            current_text_addr += 4  # each instruction is 1 word = 4 bytes
 
+            # Increment only if it's an instruction
+            if "mnemonic" in line:
+                current_text_addr += 4
         # Handling data section
         elif section == ".data":
             if label:

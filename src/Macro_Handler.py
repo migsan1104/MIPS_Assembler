@@ -1,20 +1,7 @@
 # assembler/macro_handler.py
 #First part of our assembler
 def expand_macros(lines):
-    '''
-    Expands macros defined in the assembly code.
-    Currently supports simple macros with no arguments.
 
-    Example:
-    .macro DEC
-        addi $t0, $t0, -1
-    .end_macro
-
-    DEC  → expands into the addi line
-
-    :param lines: list of strings from the .asm file
-    :return: list of strings with macros expanded
-    '''
     macros = {}  # macro_name -> list of body lines
     expanded = []  # final output
     inside_macro = False
