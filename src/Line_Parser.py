@@ -8,6 +8,9 @@ def parse_lines(lines):
     for raw_line in lines:
         line_no += 1
         line = raw_line.strip()
+
+        line = line.split("#")[0].strip()
+
         # first we skip blanks and comments
         if not line or line.startswith("#"):
             continue
@@ -84,6 +87,7 @@ def parse_lines(lines):
             elif directive in [".word", ".byte"]:
                 values = []
                 for v in parts[1:]:
+                    v = v.strip().rstrip(',')  # ← fixes the comma issue
                     try:
                         values.append(int(v, 0))
                     except ValueError:
@@ -94,6 +98,7 @@ def parse_lines(lines):
                     "values": values,
                     "section": current_section
                 })
+
 
             else:
                 raise ValueError(f"Line {line_no}: Unknown directive {directive}")

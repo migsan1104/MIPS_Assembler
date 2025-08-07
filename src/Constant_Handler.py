@@ -3,6 +3,11 @@ class ConstantTable:
     def __init__(self):
         self.table = {}
 
+    def __contains__(self, key):
+        return key in self.table
+
+    def __getitem__(self, key):
+        return self.table[key]
     def add(self, name, value):
         if name in self.table:
             raise ValueError(f"Duplicate constant: {name}")
@@ -29,7 +34,7 @@ def process_constants(lines):
 
     for line in lines:
          if line.get("directive", "").lower() == ".equ":
-            label = line.get("label")
+            label = line.get("name") or line.get("label")
             value_str = line.get("value")
 
             if not label or value_str is None:
@@ -39,4 +44,4 @@ def process_constants(lines):
             value = int(value_str, 0)
             const_table.add(label, value)
 
-    return const_table
+    return lines, const_table

@@ -31,8 +31,8 @@ def main():
     input_path = sys.argv[1]
     base = os.path.splitext(os.path.basename(input_path))[0]
     #Change this if the path is different
-    rom_path = f"Output/{base}_rom.hex"
-    ram_path = f"Output/{base}_ram.hex"
+    rom_path = f"Outputs/{base}_rom.hex"
+    ram_path = f"Outputs/{base}_ram.hex"
 
     # 1. Reading the .asm file
     raw_lines = read_asm_file(input_path)
@@ -61,12 +61,17 @@ def main():
 
 
 
-    # 7. Encode the text data into a list of rom bytes
+    # 7. Encode the text section into a list of rom bytes
     rom_bytes = []
     for i, line in enumerate(text_lines):
+        #skipping lines that ar enot valid
+        if "mnemonic" not in line:
+            continue
         mnemonic = line["mnemonic"]
         operands = line.get("operands", "")
-        address = line.get("address", i * 4)  # fallback if address is missing
+        #just incase the address is missing
+        address = line.get("address", i * 4)
+
 
         try:
             word = encode_instruction(mnemonic, operands, label_table, constant_table, address)
@@ -85,7 +90,7 @@ def main():
     # 8. Encode the data into ram bytes to process into the.hex file
     ram_bytes = encode_data_directives(data_lines)
 
-    # 9. Write back the ram and rom .hex files 
+    # 9. Write back the ram and rom .hex files
     write_hex_file(rom_path, rom_bytes, "ROM")
     write_hex_file(ram_path, ram_bytes, "RAM")
 

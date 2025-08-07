@@ -1,6 +1,6 @@
 import os
 import sys
-from Encoder import register_map
+
 def write_output_file(path, lines, label=""):
     output_dir = os.path.dirname(path)
 
@@ -22,10 +22,7 @@ def write_output_file(path, lines, label=""):
     except Exception as e:
         print(f"❌ Failed to write {label}: {e}")
 
-def get_register_number(reg_name):
-    if reg_name in register_map:
-        return register_map[reg_name]
-    raise ValueError(f"Unknown register name: {reg_name}")
+
 #converts .data section directives into the bytes needed for the data memory hex file
 def encode_data_directives(lines):
 

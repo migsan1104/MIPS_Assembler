@@ -1,6 +1,6 @@
-from Utilities import get_register_number
-from Constant_Handler import ConstantTable, process_constants
-from Label_Handler import Label_Table,process_labels
+
+from src.Constant_Handler import ConstantTable, process_constants
+from src.Label_Handler import Label_Table,process_labels
 # instruction map used to encode/decode
 instruction_map = {
     'addiu': {'opcode': '0x09', 'funct': None, 'type': 'I-type'},
@@ -42,7 +42,10 @@ register_map = {
     "ra": 0x1F   # register 31
 }
 
-
+def get_register_number(reg_name):
+    if reg_name in register_map:
+        return register_map[reg_name]
+    raise ValueError(f"Unknown register name: {reg_name}")
 
 # function used to decode a single line that contains an instruction
 def encode_instruction(mnemonic, operands, label_table=None, constants={}, current_address=0):
@@ -52,15 +55,15 @@ def encode_instruction(mnemonic, operands, label_table=None, constants={}, curre
 
     instr_type = info["type"]
 
-    if instr_type == "R":
+    if instr_type == "R-type":
         return encode_r_type(mnemonic, operands, info)
-    elif instr_type == "I":
+    elif instr_type == "I-type":
         return encode_i_type(mnemonic, operands, info, constants)
-    elif instr_type == "branch":
+    elif instr_type == "Branch":
         return encode_branch(mnemonic, operands, info, label_table, current_address, constants)
-    elif instr_type == "jump":
+    elif instr_type == "Jump":
         return encode_jump(mnemonic, operands, info, label_table, constants)
-    elif instr_type == "mem":
+    elif instr_type == "Memory":
         return encode_memory(mnemonic, operands, info, constants, label_table)
     else:
         raise ValueError(f"Unsupported instruction type: {instr_type}")
@@ -176,7 +179,7 @@ def encode_branch(mnemonic, operands, info, label_table, current_address, consta
 
     # Compute the offset relative to PC, turn the byte address into a word address aswell
     offset = (target_address - (current_address + 4)) // 4
-    offset &= 0xFFFF  # wrap to 16-bit signed
+
 
     opcode = int(info["opcode"], 16)
 
@@ -184,24 +187,28 @@ def encode_branch(mnemonic, operands, info, label_table, current_address, consta
         (opcode << 26) |
         (rs << 21) |
         (rt << 16) |
-        offset
+        (offset & 0xFFFF)
     )
 
 #jump encoder, jump target is word aligned
-def encode_jump(mnemonic, operands, info, label_table):
+def encode_jump(mnemonic, operands, info, label_table,constants):
     opcode = int(info["opcode"], 16)
     operand = operands.strip()
 
-    try:
-        # Try resolving as a label first
-        target_address = label_table.get(operand)
-        target = target_address >> 2  # must shift as labels are byte aligned
-    except KeyError:
-        # now the target is word aligned
-        target = int(operand, 0)  # supports 0xNN, 0bNN, decimal
+    operand = operands.strip()
+    # shift addresses in label table due to the fact they are byte aligned
+    if label_table and operand in label_table.table:
+        target_address = label_table[operand]
+        target = target_address >> 2
+    elif operand in constants:
+        # assume that the constant is already word aligned
+        target = constants[operand]
+    else:
+        target = int(operand, 0)
 
-    target &= 0x03FFFFFF  # mask to 26 bits
+    target &= 0x03FFFFFF
     return (opcode << 26) | target
+
 # this function encodes mem instructions, although labels are byte addresses, the raw offset fields need to be inputed as word addresses
 def encode_memory(mnemonic, operands, info, constants={}, label_table=None):
     try:

@@ -4,6 +4,13 @@ class Label_Table:
     def __init__(self):
         self.table = {}
 
+    def __contains__(self, key):
+        return key in self.table
+
+    def __getitem__(self, key):
+        return self.table[key]
+
+
     def add_label(self, label, address):
         if label in self.table:
             raise ValueError(f"Duplicate label detected: {label}")
@@ -17,6 +24,10 @@ class Label_Table:
     def has_label(self, label):
         return label in self.table
 
+    def get(self, name):
+        if name not in self.table:
+            raise KeyError(f"Constant '{name}' not found")
+        return self.table[name]
     def dump(self):
         #print table for debugging
         for label, addr in self.table.items():
