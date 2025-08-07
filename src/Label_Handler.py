@@ -35,7 +35,7 @@ def process_labels(lines, start_text_addr=0x00000000, start_data_addr=0x00000000
         section = line.get("section")
         label   = line.get("label")
 
-        # handle .org directives. Note: .org address assignments are word aligned 
+        # handle .org directives. Note: .org address assignments are word aligned
         if line.get("directive") == ".org":
             value_str = line.get("value")
             if value_str is None:
@@ -51,14 +51,14 @@ def process_labels(lines, start_text_addr=0x00000000, start_data_addr=0x00000000
                 raise ValueError(f".org directive outside of .text/.data: {line}")
             continue  # skip assigning address to .org line
 
-        # ─── Handle .text section ────────────────────────────────
+        # Handling text section
         if section == ".text":
             line["address"] = current_text_addr
             if label:
                 label_table.add_label(label, current_text_addr)
             current_text_addr += 4  # each instruction is 1 word = 4 bytes
 
-        # ─── Handle .data section ────────────────────────────────
+        # Handling data section
         elif section == ".data":
             if label:
                 label_table.add_label(label, current_data_addr)
@@ -71,7 +71,13 @@ def process_labels(lines, start_text_addr=0x00000000, start_data_addr=0x00000000
             elif line.get("directive") == ".byte":
                 values = line.get("values", [])
                 line["address"] = current_data_addr
-                current_data_addr += len(values)  # 1 byte per value
+                padded_count = ((len(values) + 3) // 4) * 4  # we must round like this as demonstrated by the directive handler
+                current_data_addr += padded_count
+
+            elif line.get("directive") == ".space":
+                line["address"] = current_data_addr
+                word_count = int(line["value"], 0)
+                current_data_addr += word_count * 4
 
     return label_table, lines
 

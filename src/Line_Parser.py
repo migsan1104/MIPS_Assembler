@@ -100,9 +100,12 @@ def parse_lines(lines):
 
         # assume it is an instruction
         else:
+            mnemonic = parts[0]
+            operands = " ".join(parts[1:])  # allows for commas, spacing
             parsed.append({
                 "label": label,
-                "instruction": line,
+                "mnemonic": mnemonic,
+                "operands": operands,
                 "section": current_section
             })
 

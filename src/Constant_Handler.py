@@ -28,7 +28,7 @@ def process_constants(lines):
     const_table = ConstantTable()
 
     for line in lines:
-        if line.get("directive") == ".EQU":
+         if line.get("directive", "").lower() == ".equ":
             label = line.get("label")
             value_str = line.get("value")
 
